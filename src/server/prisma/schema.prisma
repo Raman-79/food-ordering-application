@@ -1,0 +1,75 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  //add a password field
+  password String 
+  profileImageUrl String   @map("profile_image_url")
+  salt      String
+  orders    Order[]
+  reviews   Review[]
+
+  @@map("users")
+}
+
+model Restaurant {
+  id          String   @id @default(cuid())
+  name        String
+  location    String
+  foodItems   FoodItem[]
+  orders      Order[]
+  reviews     Review[]
+}
+
+model FoodItem {
+  id            String   @id @default(cuid())
+  name          String
+  price         Float
+  restaurantId  String 
+  restaurant    Restaurant @relation(fields: [restaurantId], references: [id]) 
+  orders        Order[]
+  reviews       Review[]
+}
+
+model Order {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  restaurantId  String
+  restaurant    Restaurant @relation(fields: [restaurantId], references: [id])
+  foodItems     FoodItem[]
+  trackingId    String
+  orderTime     DateTime @default(now())
+  status        String
+  reviews       Review[] 
+}
+
+model Review {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  restaurantId  String
+  restaurant    Restaurant @relation(fields: [restaurantId], references: [id])
+  foodItemId    String
+  foodItem      FoodItem  @relation(fields: [foodItemId], references: [id])
+  rating        Int
+  comment       String
+  lastUpdated   DateTime @default(now())
+  orderId      String?
+  order         Order? @relation(fields: [orderId], references: [id])  
+  }
